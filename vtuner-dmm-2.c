@@ -41,6 +41,7 @@ int hw_init(vtuner_hw_t* hw, int adapter, int frontend, int demux, int dvr) {
     case FE_QPSK: hw->type = VT_S; break;
     case FE_QAM:  hw->type = VT_C; break;
     case FE_OFDM: hw->type = VT_T; break;
+    case FE_ATSC: hw->type = VT_A; break;
     default:
       ERROR(MSG_HW, "Unknown frontend type %d\n", hw->fe_info.type);
       goto cleanup_fe;
@@ -125,6 +126,7 @@ int hw_set_frontend(vtuner_hw_t* hw, FrontendParameters* fe_params) {
     case VT_S: DEBUGHWF(" SymbolRate: %d FEC: %d\n", fe_params->u.qpsk.SymbolRate, fe_params->u.qpsk.FEC_inner); break;
     case VT_C: DEBUGHWF(" SymbolRate: %d FEC: %d QAM: %d\n", fe_params->u.qam.SymbolRate, fe_params->u.qam.FEC_inner, fe_params->u.qam.QAM); break;
     case VT_T: break; //FIXME
+    case VT_A: DEBUGHWF(" Modulation: %d\n", fe_params->u.vsb.modulation); break;
   }
  
   if( ret != 0 ) {
@@ -138,6 +140,9 @@ int hw_set_frontend(vtuner_hw_t* hw, FrontendParameters* fe_params) {
         break;
      case VT_T:
         //FIXME: DVB_C Params
+        break;
+     case VT_A:
+        //FIXME: ATSC Params
         break;
     }
   }

@@ -1,42 +1,29 @@
--include ../../Make.config
+LOCVER := $(shell hg id | tr ' ' / )
+MODFLAG := $(shell if `hg status | grep ^M | grep \.[ch]$$ > /dev/null` ; then echo /dirty ; fi )
 
-all: i686 x86_64 mipsel ppc db2 sh4 mipsel15 ipkg
+CFLAGS += -fPIC -DHAVE_DVB_API_VERSION=5 $(DBGFLAGS)
+LDFLAGS += -lpthread -lrt
+DRIVER = vtuner-dvb-3
 
-i686:
-	$(MAKE) -C build/i686 all
-	
-x86_64:
-	$(MAKE) -C build/x86_64 all
-	
-ppc: 	
-	$(MAKE) -C build/ppc
+default: vtunerd vtunerc
 
-db2: 	
-	$(MAKE) -C build/db2
+vtuner-dvb-3.o: vtuner-dvb-3.c vtuner-dvb-3.h
+	$(CC) $(CFLAGS) -c -o vtuner-dvb-3.o vtuner-dvb-3.c
 
-mipsel: 	
-	$(MAKE) -C build/mipsel all
+vtunerd: vtunerd.c vtunerd-service.o vtuner-network.o vtuner-utils.o $(DRIVER).o
+	$(CC) $(CFLAGS) -DBUILDVER="\"$(LOCVER)\"" -DMODFLAG=\"$(MODFLAG)\" -o vtunerd vtuner-network.o vtunerd-service.o $(DRIVER).o vtuner-utils.o vtunerd.c $(LDFLAGS)
 
-mipsel15:         
-	$(MAKE) -C build/mipsel15
-	
-sh4:         
-	$(MAKE) -C build/sh4 all
+vtunerc: vtunerc.c vtuner-network.o vtuner-utils.o
+	$(CC) $(CFLAGS) -DBUILDVER="\"$(LOCVER)\"" -DMODFLAG=\"$(MODFLAG)\" -o vtunerc vtuner-network.o vtuner-utils.o vtunerc.c $(LDFLAGS)
 
-ipkg:   mipsel
-	$(MAKE) -C pkgs ipkg
-    	
-arm:         
-	$(MAKE) -C build/arm
+vtunerd-service.o: vtunerd-service.c vtunerd-service.h
+	$(CC) $(CFLAGS) -c -o vtunerd-service.o vtunerd-service.c
 
-	
+vtuner-network.o: vtuner-network.c vtuner-network.h
+	$(CC) $(CFLAGS) -c -o vtuner-network.o vtuner-network.c
+
+vtuner-utils.o: vtuner-utils.c vtuner-utils.h
+	$(CC) $(CFLAGS) -c -o vtuner-utils.o vtuner-utils.c
+
 clean:
-	$(MAKE) -C build/i686 clean
-	$(MAKE) -C build/x86_64 clean
-	$(MAKE) -C build/ppc clean
-	$(MAKE) -C build/db2 clean
-	$(MAKE) -C build/mipsel clean
-	$(MAKE) -C build/sh4 clean
-	$(MAKE) -C build/mipsel15 clean
-	$(MAKE) -C pkgs clean
-	$(MAKE) -C build/arm clean
+	rm -rf *.o vtunerd vtunerc

@@ -16,6 +16,7 @@
 #include <linux/dvb/version.h>
 #include <time.h>
 #include <sys/param.h>
+#include <pthread.h>
 
 #include "vtuner-network.h"
 
@@ -208,7 +209,7 @@ typedef struct discover_worker_data {
   unsigned short port;
 } discover_worker_data_t;
 
-int *discover_worker(void *d) {
+void *discover_worker(void *d) {
   discover_worker_data_t* data = (discover_worker_data_t*)d;
 
   INFO(MSG_MAIN, "starting discover thread\n");
@@ -340,7 +341,18 @@ struct dvb_frontend_info fe_info_dvbt = {
   .caps                  = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 | FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO | FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO //0xb2eaf
 };
 
-#define MAX_NUM_VTUNER_MODES 3
+struct dvb_frontend_info fe_info_atsc = {
+  .name                  = "vTuner ATSC",
+  .type                  = 3,
+  .frequency_min      = 54000000,
+  .frequency_max      = 858000000,
+  .frequency_stepsize = 62500,
+  .frequency_tolerance   = 0,
+  .notifier_delay        = 0,
+  .caps                  = FE_CAN_8VSB | FE_CAN_QAM_AUTO | FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_RECOVER
+};
+
+#define MAX_NUM_VTUNER_MODES 4
 
 int main(int argc, char **argv) {
 
@@ -435,8 +447,12 @@ int main(int argc, char **argv) {
           types[modes] = VT_T;
           vtuner_info[modes] = &fe_info_dvbt;
           strncpy(ctypes[modes],"DVB-T",sizeof(ctypes[0]));
+        } else if(strcmp(act,"A")==0) {
+          types[modes] = VT_A;
+          vtuner_info[modes] = &fe_info_atsc;
+          strncpy(ctypes[modes],"ATSC",sizeof(ctypes[0]));
         } else {
-          ERROR(MSG_MAIN, "unknown tuner mode specified: %s allowed values are: -s -S -s2 -S2 -c -t (with optional group mask)\n", optarg);
+          ERROR(MSG_MAIN, "unknown tuner mode specified: %s allowed values are: -s -S -s2 -S2 -c -t -A (with optional group mask)\n", optarg);
           exit(1);
         }
 
@@ -493,9 +509,9 @@ int main(int argc, char **argv) {
       write_message(MSG_MAIN, MSG_ERROR, "\nCommand line options:\n"
                       "  Required:\n"
 #ifdef HAVE_DREAMBOX_HARDWARE
-                      "    -f dvb_type[:tuner_mask][,<dvb_type_2>[:tuner_mask_2][,dvb_type_3[:tuner_mask_3]]] : tuner type to ask (dvb_type=S,s,S2,s2,T,C) and optional tuner group mask (every bit represents one tuner group)\n"
+                      "    -f dvb_type[:tuner_mask][,<dvb_type_2>[:tuner_mask_2][,dvb_type_3[:tuner_mask_3]]] : tuner type to ask (dvb_type=S,s,S2,s2,T,C,A) and optional tuner group mask (every bit represents one tuner group)\n"
 #else
-                      "    -f dvb_type[:tuner_mask] : tuner type to ask (dvb_type=S,S2,T,C) and optional tuner group mask (every bit represents one tuner group)\n"
+                      "    -f dvb_type[:tuner_mask] : tuner type to ask (dvb_type=S,S2,T,C,A) and optional tuner group mask (every bit represents one tuner group)\n"
 #endif
                       "  Optional:\n"
                       "    -d dev_name              : path to controlling device (usually /dev/vtunerc0)\n"

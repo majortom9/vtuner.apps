@@ -10,6 +10,10 @@
 #include <netinet/tcp.h>
 #include <signal.h>
 #include <time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <arpa/inet.h>
 
 #include "vtunerd-service.h"
 
@@ -33,7 +37,7 @@ int init_vtuner_service(char *ip, unsigned short port) {
 
 	if( ip && strlen(ip) ) {
 		unsigned long nip;
-  		inet_aton(ip, &nip);
+		int inet_aton(const char *ip, struct in_addr *nip);
 		if( nip )
 			listen_ip = ntohl(nip);
 	}

@@ -24,7 +24,8 @@ typedef enum vtuner_type {
   VT_S = 0x01,
   VT_C = 0x02,
   VT_T = 0x04,
-  VT_S2 = 0x08
+  VT_S2 = 0x08,
+  VT_A = 0x10
 } vtuner_type_t;
 
 #define MSG_SET_FRONTEND         1

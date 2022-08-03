@@ -1,6 +1,9 @@
 #include "vtuner-network.h"
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
 #define NTOHB(host,net,field) host->field=net.field
 #define NTOHS(host,net,field) host->field=ntohs(net.field)
@@ -61,6 +64,10 @@
         hfe->u.ofdm.guardInterval		= netmsg->body.fe_params.u.ofdm.guard_interval;
         hfe->u.ofdm.HierarchyInformation	= netmsg->body.fe_params.u.ofdm.hierarchy_information;
         break;
+      case VT_A:
+        //hfe->u.atsc.vsb				= netmsg->body.fe_params.u.vsb.modulation;
+        hfe->u.vsb.modulation				= netmsg->body.fe_params.u.vsb.modulation;
+        break;
     }
   }
 
@@ -103,6 +110,9 @@
         netmsg->body.fe_params.u.ofdm.guard_interval	= hfe->u.ofdm.guardInterval;
         netmsg->body.fe_params.u.ofdm.hierarchy_information	= hfe->u.ofdm.HierarchyInformation;
         break;
+      case VT_A:
+        netmsg->body.fe_params.u.vsb.modulation		= hfe->u.vsb.VSB_8;
+        break;
     }
   }
 #else
@@ -130,6 +140,9 @@
         hfe->u.ofdm.transmission_mode		= netmsg->body.fe_params.u.ofdm.transmission_mode;
         hfe->u.ofdm.guard_interval		= netmsg->body.fe_params.u.ofdm.guard_interval;
         hfe->u.ofdm.hierarchy_information	= netmsg->body.fe_params.u.ofdm.hierarchy_information;
+        break;
+      case VT_A:
+        hfe->u.vsb.modulation	= netmsg->body.fe_params.u.vsb.modulation;
     }
   }
 
@@ -155,6 +168,9 @@
         netmsg->body.fe_params.u.ofdm.transmission_mode           = hfe->u.ofdm.transmission_mode;
         netmsg->body.fe_params.u.ofdm.guard_interval              = hfe->u.ofdm.guard_interval;
         netmsg->body.fe_params.u.ofdm.hierarchy_information       = hfe->u.ofdm.hierarchy_information;
+        break;
+      case VT_A:
+        netmsg->body.fe_params.u.vsb.modulation   = hfe->u.vsb.modulation;
     }
   }
 #endif
@@ -196,8 +212,12 @@ void hton_vtuner_net_message(vtuner_net_message_t* netmsg, vtuner_type_t type) {
           HTONLc( netmsg->u.vtuner.body.fe_params, u.ofdm.guard_interval);
           HTONLc( netmsg->u.vtuner.body.fe_params, u.ofdm.hierarchy_information);
 	  break;
+        case VT_A:
+          DEBUGNETC(" VT_A");
+          HTONLc( netmsg->u.vtuner.body.fe_params, u.vsb.modulation);
+          break;
 	default:
-          WARN(MSG_NET, "unkown frontend type %d (known types are %d,%d,%d,%d)\n",type,VT_S,VT_C,VT_T,VT_S2);
+          WARN(MSG_NET, "unkown frontend type %d (known types are %d,%d,%d,%d)\n",type,VT_S,VT_C,VT_T,VT_S2,VT_A);
       };
       break;
     case MSG_READ_STATUS:
@@ -302,8 +322,12 @@ void ntoh_vtuner_net_message(vtuner_net_message_t* netmsg, vtuner_type_t type) {
           NTOHLc( netmsg->u.vtuner.body.fe_params, u.ofdm.guard_interval);
           NTOHLc( netmsg->u.vtuner.body.fe_params, u.ofdm.hierarchy_information);
           break;
+        case VT_A:
+          DEBUGNETC(" VT_A");
+          NTOHLc( netmsg->u.vtuner.body.fe_params, u.vsb.modulation);
+          break;
         default:
-          WARN(MSG_NET, "unkown frontend type %d (known types are %d,%d,%d,%d)\n",type,VT_S,VT_C,VT_T,VT_S2);
+          WARN(MSG_NET, "unkown frontend type %d (known types are %d,%d,%d,%d)\n",type,VT_S,VT_C,VT_T,VT_S2,VT_A);
       }
       DEBUGNETC(" %d %d %d %d", netmsg->u.vtuner.body.fe_params.frequency, netmsg->u.vtuner.body.fe_params.inversion, netmsg->u.vtuner.body.fe_params.u.qpsk.symbol_rate, netmsg->u.vtuner.body.fe_params.u.qpsk.fec_inner);
       break;

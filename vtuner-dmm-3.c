@@ -53,6 +53,7 @@ int hw_init(vtuner_hw_t* hw, int adapter, int frontend, int demux, int dvr) {
     case FE_QPSK: hw->type = VT_S; break;
     case FE_QAM:  hw->type = VT_C; break;
     case FE_OFDM: hw->type = VT_T; break;
+    case FE_ATSC: hw->type = VT_A; break;
     default:
       ERROR(MSG_HW, "Unknown frontend type %d\n", hw->fe_info.type);
       goto cleanup_fe;
@@ -132,6 +133,8 @@ void print_frontend_parameters(vtuner_hw_t* hw, struct dvb_frontend_parameters* 
                         fe_params->u.qam.symbol_rate, fe_params->u.qam.fec_inner, fe_params->u.qam.modulation); 
                break;
     case VT_T: break;
+    case VT_A: snprintf(msg, msgsize, "freq:%d MOD:%d\n", fe_params->frequency, fe_params->u.vsb.modulation);
+	       break;
   }
 }
 
@@ -223,10 +226,22 @@ int hw_set_frontend(vtuner_hw_t* hw, struct dvb_frontend_parameters* fe_params) 
       }
       case VT_C:
       case VT_T:  // even If we would have S2API, the old is sufficent to tune
-        ret = ioctl(hw->frontend_fd, FE_SET_FRONTEND, fe_params); 
+      case VT_A:
+        if( hw->type == VT_A && cmdseq.props[0] == SYS_ATSC ) {
+          cmdseq.props[1].u.data = fe_params->frequency;
+          cmdseq.props[2].u.data = VSB_8;
+	  }
+//        if( hw->type == VT_A && cmdseq.props[0] == SYS_DVBC_ANNEX_B ) {
+//          cmdseq.props[1].u.data = fe_params->frequency;
+//          cmdseq.props[2].u.data = QAM_AUTO;
+//	  }
+
+        DEBUGHW("S2API tuning SYS:%d FREQ: %d MOD:%d\n", cmdseq.props[0].u.data, cmdseq.props[1].u.data, cmdseq.props[2].u.data);
+        ret=ioctl(hw->frontend_fd, FE_SET_PROPERTY, &cmdseq);
+        //ret = ioctl(hw->frontend_fd, FE_SET_FRONTEND, fe_params);
         break;
       default:
-	WARN(MSG_HW, "tuning not implemented for HW-type:%d (S:%d, S2:%d C:%d T:%d)\n", hw->type, VT_S, VT_S2, VT_C, VT_T);
+	WARN(MSG_HW, "tuning not implemented for HW-type:%d (S:%d, S2:%d C:%d T:%d A:%d)\n", hw->type, VT_S, VT_S2, VT_C, VT_T, VT_A);
     }
   #endif
   if( ret != 0 ) WARN(MSG_HW, "FE_SET_FRONTEND failed %s - %m\n", msg);
