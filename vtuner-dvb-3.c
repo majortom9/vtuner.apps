@@ -233,15 +233,10 @@ int hw_set_frontend(vtuner_hw_t* hw, struct dvb_frontend_parameters* fe_params) 
       case VT_T:  // even If we would have S2API, the old is sufficent to tune
 	ret = ioctl(hw->frontend_fd, FE_SET_FRONTEND, fe_params);
       case VT_A:
-        if( hw->type == VT_A ) {
-          cmdseq.props[0].u.data = SYS_ATSC;
-          cmdseq.props[1].u.data = fe_params->frequency;
-          cmdseq.props[2].u.data = VSB_8;
-	}
-        //if( hw->type == VT_A && fe_params->vsb.QAM ) {
-        //  cmdseq.props[1].u.data = fe_params->frequency;
-        //  cmdseq.props[2].u.data = QAM_AUTO;
-        // }
+        cmdseq.num = 9;
+        cmdseq.props = S;
+        cmdseq.props[0].u.data = SYS_ATSC;
+        cmdseq.props[2].u.data = VSB_8;
 
         DEBUGHW("S2API tuning SYS:%d FREQ: %d MOD:%d\n", cmdseq.props[0].u.data, cmdseq.props[1].u.data, cmdseq.props[2].u.data);
         ret=ioctl(hw->frontend_fd, FE_SET_PROPERTY, &cmdseq);

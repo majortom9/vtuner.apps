@@ -143,6 +143,7 @@ int hw_set_frontend(vtuner_hw_t* hw, FrontendParameters* fe_params) {
         break;
      case VT_A:
         //FIXME: ATSC Params
+        WARN(MSG_HW, "FE_SET_FRONTEND parameters: Freq:%d Modulation: %d\n", fe_params->Frequency, fe_params->u.vsb.modulation);
         break;
     }
   }

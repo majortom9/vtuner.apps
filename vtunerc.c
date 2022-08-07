@@ -352,7 +352,7 @@ struct dvb_frontend_info fe_info_atsc = {
   .caps                  = FE_CAN_8VSB | FE_CAN_QAM_AUTO | FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_RECOVER
 };
 
-#define MAX_NUM_VTUNER_MODES 4
+#define MAX_NUM_VTUNER_MODES 5
 
 int main(int argc, char **argv) {
 
