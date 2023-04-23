@@ -4,7 +4,9 @@
 #include "vtuner-network.h"
 
 #define DEBUGHW(msg, ...)  DEBUG(MSG_HW, msg, ## __VA_ARGS__)
+extern void init_message(const char *fmt, ...);
 #define DEBUGHWI(msg, ...) init_message("[%d %s:%u] debug: " msg, getpid(), __FILE__, __LINE__, ## __VA_ARGS__)
+extern void append_message(const char *fmt, ...);
 #define DEBUGHWC(msg, ...) append_message(msg, ## __VA_ARGS__)
 #define DEBUGHWF(msg, ...) DEBUG(MSG_HW, msg, ## __VA_ARGS__)
 
