@@ -1,6 +1,3 @@
-LOCVER := $(shell hg id | tr ' ' / )
-MODFLAG := $(shell if `hg status | grep ^M | grep \.[ch]$$ > /dev/null` ; then echo /dirty ; fi )
-
 CFLAGS += -fPIC -DHAVE_DVB_API_VERSION=5 $(DBGFLAGS)
 LDFLAGS += -lpthread -lrt
 DRIVER = vtuner-dvb-3
